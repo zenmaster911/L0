@@ -21,6 +21,14 @@ type Payment struct {
 }
 
 type Item struct {
+	Id    int    `json:"id" db:"id"`
+	NmId  int    `json:"nm_id" db:"nm_id"`
+	Name  string `json:"name" db:"name"`
+	Size  string `json:"size" db:"size"`
+	Brand string `json:"brand" db:"brand"`
+}
+
+type DeliveryItem struct {
 	ChrtId      int       `json:"chrt_id" db:"chrt_id"`
 	TrackNumber string    `json:"track_number" db:"track_number"`
 	Price       int       `json:"price" db:"price"`
@@ -35,6 +43,7 @@ type Item struct {
 }
 
 type Delivery struct {
+	Id      int    `json:"id" db:"id"`
 	Name    string `json:"name" db:"name"`
 	Phone   string `json:"phone" db:"phone"`
 	Zip     string `json:"zip" db:"zip"`
@@ -44,10 +53,18 @@ type Delivery struct {
 	Email   string `json:"email" db:"email"`
 }
 
+type Customer struct {
+	Uid     uuid.UUID `json:"customer_uid" db:"customer_uid"`
+	Name    string    `json:"name" db:"name"`
+	Surname string    `json:"surname" db:"surname"`
+	Phone   string    `json:"phone" db:"phone"`
+	Email   string    `json:"email" db:"email"`
+}
+
 type Order struct {
 	OrderUid          uuid.UUID `json:"order_uid" db:"order_uid"`
 	TrackNumber       string    `json:"track_number" db:"track_number"`
-	Entry             string    `json:"entry" db:"entry"`
+	Entry             string    `json:"entry_code" db:"entry_code"`
 	Locale            string    `json:"locale" db:"locale"`
 	InternalSignature string    `json:"internal_signature" db:"internal_signature"`
 	CustomerId        string    `json:"customer_id" db:"customer_id"`
@@ -59,18 +76,18 @@ type Order struct {
 }
 
 type Reply struct {
-	OrderUid          uuid.UUID `json:"order_uid" db:"order_uid"`
-	TrackNumber       string    `json:"track_number" db:"track_number"`
-	Entry             string    `json:"entry" db:"entry"`
-	Delivery          Delivery  `json:"delivery" db:"delivery"`
-	Payment           Payment   `json:"payment" db:"payment"`
-	Items             []Item    `json:"items" db:"items"`
-	Locale            string    `json:"locale" db:"locale"`
-	InternalSignature string    `json:"internal_signature" db:"internal_signature"`
-	CustomerId        string    `json:"customer_id" db:"customer_id"`
-	DeliveryService   string    `json:"delivery_service" db:"delivery_service"`
-	Shardkey          string    `json:"shardkey" db:"shardkey"`
-	SmId              int       `json:"sm_id" db:"sm_id"`
-	DateCreated       time.Time `json:"date_created" db:"date_created"`
-	OofShard          string    `json:"oof_shard" db:"oof_shard"`
+	OrderUid          uuid.UUID      `json:"order_uid" db:"order_uid"`
+	TrackNumber       string         `json:"track_number" db:"track_number"`
+	Entry             string         `json:"entry_code" db:"entry_code"`
+	Delivery          Delivery       `json:"delivery" db:"delivery"`
+	Payment           Payment        `json:"payment" db:"payment"`
+	Items             []DeliveryItem `json:"items" db:"items"`
+	Locale            string         `json:"locale" db:"locale"`
+	InternalSignature string         `json:"internal_signature" db:"internal_signature"`
+	CustomerId        string         `json:"customer_id" db:"customer_id"`
+	DeliveryService   string         `json:"delivery_service" db:"delivery_service"`
+	Shardkey          string         `json:"shardkey" db:"shardkey"`
+	SmId              int            `json:"sm_id" db:"sm_id"`
+	DateCreated       time.Time      `json:"date_created" db:"date_created"`
+	OofShard          string         `json:"oof_shard" db:"oof_shard"`
 }

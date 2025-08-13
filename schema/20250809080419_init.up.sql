@@ -15,7 +15,8 @@ CREATE TABLE deliveries
     city VARCHAR(255) NOT NULL,
     street VARCHAR(255) NOT NULL,
     house VARCHAR (15) NOT NULL,
-    flat VARCHAR (15)
+    flat VARCHAR (15), --на данный момент не используется
+    customer_uid VARCHAR(255) REFERENCES customers(customer_uid) 
 );
 
 CREATE TABLE payments
@@ -36,8 +37,8 @@ CREATE TABLE payments
 CREATE TABLE items
 (   
     item_id SERIAL PRIMARY KEY,
-    nm_id INT,
-    name VARCHAR(255),
+    nm_id INT NOT NULL UNIQUE,
+    name VARCHAR(255) NOT NULL,
     size VARCHAR(255) DEFAULT '0',
     brand VARCHAR(255) NOT NULL
 );

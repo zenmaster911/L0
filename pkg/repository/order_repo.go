@@ -2,7 +2,9 @@ package repository
 
 import (
 	"fmt"
+	"strings"
 
+	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/zenmaster911/L0/pkg/model"
 )
@@ -15,8 +17,110 @@ func NewOrderPostgres(db *sqlx.DB) *OrderPostgres {
 	return &OrderPostgres{db: db}
 }
 
+func (r *OrderPostgres) CreateOrder(input *model.Reply) (uid uuid.UUID, err error) {
+	exists := false
+	var itemId, deliveryId int
+	itemIds := make([]int, 0)
+	var customerUid string
+	tx, err := r.db.Begin()
+	if err != nil {
+		return uuid.Nil, fmt.Errorf("DB startin transaction error: %s", err)
+	}
+	err = tx.QueryRow(`SELECT EXISTS(SELECT 1 FROM orders WHERE order_uid=$1)`, input.OrderUid).Scan(&exists)
+	if err != nil {
+		tx.Rollback()
+		return uuid.Nil, fmt.Errorf("order uid %s check failed with error: %w", input.OrderUid, err)
+	}
+	if exists {
+		tx.Rollback()
+		return uuid.Nil, fmt.Errorf("order %s already exists", input.OrderUid)
+	}
+	// так как на данный момент база данных пустая, исхожу из того что в запросе упомянуты только валидные товары и, при необходимости, добавляю их в бд.
+	// в случае работы с реальной базой данных, в случае отсутствия id товара в базе транзакция была бы остановлена.
+	// аналочгично в дальнейшем будут реализованы таблицы customers и deliveries
+	for _, v := range input.Items {
+		err = tx.QueryRow(`SELECT EXISTS(SELECT 1 FROM items WHERE nm_id=$1)`, v.NmId).Scan(&exists)
+		if err != nil {
+			tx.Rollback()
+			return uuid.Nil, fmt.Errorf("item %d check failed with error: %w", v.NmId, err)
+		}
+		if !exists {
+			itemQuery := `INSERT INTO items (nm_id,name,size,brand)
+			VALUES($1,$2,$3,$4)
+			RETURNING ID`
+			if err := tx.QueryRow(itemQuery, v.NmId, v.Name, v.Size, v.Brand).Scan(&itemId); err != nil {
+				tx.Rollback()
+				return uuid.Nil, fmt.Errorf("error inserting item into database %w", err)
+			}
+		}
+		itemIds = append(itemIds, itemId)
+	}
+
+	err = tx.QueryRow(`SELECT EXISTS(SELECT 1 FROM customers WHERE phone=$1)`, input.Delivery.Phone).Scan(&exists)
+	if err != nil {
+		tx.Rollback()
+		return uuid.Nil, fmt.Errorf("customer's phone %s check failed with error: %w", input.Delivery.Phone, err)
+	}
+	if !exists {
+		customerUid = uuid.NewString()
+		customerQuery := `INSERT INTO customers (customer_uid, name, surname, phone, email)
+		VALUES ($1,$2,$3,$4,$5)`
+		name := strings.Split(input.Delivery.Name, " ")
+		if _, err = tx.Exec(customerQuery, customerUid, name[0], name[1], input.Delivery.Phone, input.Delivery.Email); err != nil {
+			tx.Rollback()
+			return uuid.Nil, fmt.Errorf("error inserting customer into database %w", err)
+		}
+	} else {
+		err = tx.QueryRow(`SELECT customer_uid FROM customers WHERE phone=$1)`, input.Delivery.Phone).Scan(&customerUid)
+		if err != nil {
+			tx.Rollback()
+			return uuid.Nil, fmt.Errorf(" receiving customer's  uid failed with error: %w", err)
+		}
+	}
+
+	err = tx.QueryRow(`SELECT EXISTS(SELECT 1 FROM deliveries WHERE CONCAT(street,' ',house)=$1 AND customer_uid=$2)`, input.Delivery.Address, customerUid).Scan(&exists)
+	if err != nil {
+		tx.Rollback()
+		return uuid.Nil, fmt.Errorf("delivery address %s check failed with error: %w", input.Delivery.Phone, err)
+	}
+	if !exists {
+		deliveryQuery := `INSERT INTO deliveries (region, zip, city, street, house, customer_uid)
+		VALUES ($1,$2,$3,$4,$5,$6)
+		Returning id`
+		address := strings.Split(input.Delivery.Address, " ")
+		if err = tx.QueryRow(deliveryQuery, input.Delivery.Region, input.Delivery.Zip, input.Delivery.City, address[0], address[1], customerUid).Scan(&deliveryId); err != nil {
+			tx.Rollback()
+			return uuid.Nil, fmt.Errorf("error inserting delivery into database %w", err)
+		}
+	} else {
+		err = tx.QueryRow(`SELECT delivery_id FROM deliveries WHERE CONCAT(street,' ',house)=$1 AND customer_uid=$2)`, input.Delivery.Address, customerUid).Scan(&deliveryId)
+		if err != nil {
+			tx.Rollback()
+			return uuid.Nil, fmt.Errorf(" receiving delivery id failed with error: %w", err)
+		}
+	}
+
+	paymentUid := uuid.NewString()
+	paymentQuery := `INSERT INTO payments (payment_uid, transaction, request_id, currency, provider, amount, payment_dt, bank, delivery_cost, goods_total, custom_fee)
+	 VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`
+	if _, err = tx.Exec(paymentQuery, paymentUid, input.Payment.Transaction.String(), input.Payment.RequeestId, input.Payment.Currency, input.Payment.Provider,
+		input.Payment.Amount, input.Payment.PaymentDt, input.Payment.Bank, input.Payment.DeliveryCost, input.Payment.GoodsTotal, input.Payment.CustomFee); err != nil {
+		tx.Rollback()
+		return uuid.Nil, fmt.Errorf("error in inserting payment into database %w", err)
+	}
+
+	orderQuery := `INSERT INTO orders (order_uid, track_number, entry_code, internal_signature, shardkey, sm_id, date_created,oof_shard,locale,customer_id,delivery_service,delivery_id,payment_id)
+	VALUSES ($1,$2,$3,$4,$5,$6,$7,$*,$9,$10,$11,$12,$13)`
+	if _, err = tx.Exec(orderQuery, input.OrderUid, input.TrackNumber, input.Entry, input.InternalSignature, input.Shardkey, input.SmId, input.DateCreated, input.OofShard,
+		input.Locale, customerUid, input.DeliveryService, deliveryId, paymentUid); err != nil {
+		tx.Rollback()
+		return uuid.Nil, fmt.Errorf("error in inserting order into database %w", err)
+	}
+
+}
+
 func (r *OrderPostgres) GetOrderByUid(uid string) (model.Reply, error) {
-	var items []model.Item
+	var items []model.DeliveryItem
 	var payment model.Payment
 	var delivery model.Delivery
 	var order model.Order
