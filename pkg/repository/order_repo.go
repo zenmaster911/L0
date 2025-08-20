@@ -117,6 +117,16 @@ func (r *OrderPostgres) CreateOrder(input *model.Reply) (uid uuid.UUID, err erro
 		return uuid.Nil, fmt.Errorf("error in inserting order into database %w", err)
 	}
 
+	for i, v := range input.Items {
+		orderItemsQuery := `INSERT INTO order_itmes (item_id, order_uid, chrt_id, price, rid, sale, total_price, status)
+		VAlUES ($1,$2,$3,$4,$5,$6,$7,$8)`
+		if _, err := tx.Exec(orderItemsQuery, itemIds[i], input.OrderUid, v.ChrtId, v.Price, v.Rid, v.Sale, v.TotalPrice, v.Status); err != nil {
+			tx.Rollback()
+			return uuid.Nil, fmt.Errorf("error in inserting order items into database %w", err)
+		}
+	}
+
+	return input.OrderUid, nil
 }
 
 func (r *OrderPostgres) GetOrderByUid(uid string) (model.Reply, error) {

@@ -1,24 +1,26 @@
 package repository
 
 import (
+	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/zenmaster911/L0/pkg/model"
 )
 
 type Order interface {
 	GetOrderByUid(uid string) (model.Reply, error)
+	CreateOrder(input *model.Reply) (uid uuid.UUID, err error)
 }
 
 type Item interface {
-	GetItemByArticle(nmId int) (model.Item, int, error)
+	GetItemByArticle(nmId int) (model.Item, error)
 }
 
 type Delivery interface {
-	GetCustomerDeliveryByAddress(address, customerUid string) (model.Delivery, int, error)
+	GetCustomerDeliveryByAddress(address, customerUid string) (model.Delivery, error)
 }
 
 type Customer interface {
-	GetCustomerByPhone(phone string) (model.Customer, string, error)
+	GetCustomerByPhone(phone string) (model.Customer, error)
 }
 
 type Repository struct {
