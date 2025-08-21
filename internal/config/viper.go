@@ -8,8 +8,8 @@ import (
 	"github.com/spf13/viper"
 )
 
-func MustLoad() *Config {
-	configPath := "config/local.yaml"
+func MustLoad() (*Config, *KafkaConfig) {
+	configPath := "local.yaml"
 	viper.SetConfigFile(configPath)
 	if err := godotenv.Load(); err != nil {
 		log.Fatalf("error loading env file: %s", err)
@@ -23,8 +23,11 @@ func MustLoad() *Config {
 	if err := viper.Unmarshal(&cfg); err != nil {
 		log.Fatalf("error in unmarshalign config: %s", err)
 	}
+	var kafka KafkaConfig
+	cfg.DB.Password = os.Getenv("DB_PASSWORD")
+	kafka.BrokerAddr = os.Getenv("KAFKA_BROKER_ADDR")
+	kafka.GroupID = os.Getenv("GROUP_ID")
+	kafka.Topic = os.Getenv("TOPIC_NAME")
 
-	cfg.Password = os.Getenv("DB_PASSWORD")
-
-	return &cfg
+	return &cfg, &kafka
 }
