@@ -1,14 +1,13 @@
 package service
 
 import (
-	"github.com/google/uuid"
 	"github.com/zenmaster911/L0/pkg/model"
 	"github.com/zenmaster911/L0/pkg/repository"
 )
 
 type Order interface {
 	GetOrderByUid(uid string) (model.Reply, error)
-	CreateOrder(input *model.Reply) (uid uuid.UUID, err error)
+	CreateOrder(input *model.Reply) (uid string, err error)
 }
 
 type Customer interface {

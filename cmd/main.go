@@ -51,10 +51,10 @@ func main() {
 	Repos := repository.NewRepository(dbConn)
 	Services := service.NewService(Repos)
 	Handlers := handler.NewHandler(Services)
-	kafkaReader := kafkaconsumer.NewKafkaConsumer(kafkacfg)
-	Worker := worker.NewWorker(Services, kafkaReader, Repos)
+	KafkaReader := kafkaconsumer.NewKafkaConsumer(kafkacfg)
+	Worker := worker.NewWorker(Services, KafkaReader, Repos)
 
-	defer kafkaReader.Close()
+	defer KafkaReader.Close()
 
 	srv := new(server.Server)
 
@@ -85,8 +85,10 @@ func main() {
 
 	go func() {
 		defer wg.Done()
-		kafkaReader.StartReading(ctx)
-		fmt.Printf("kafkaReader: %v\n", kafkaReader)
+		if err := Worker.StartWorker(ctx); err != nil {
+			log.Fatalf("kafka worker error: %v", err)
+		}
+		fmt.Printf("kafkaReader: %v\n", Worker)
 	}()
 
 	wg.Wait()

@@ -1,11 +1,13 @@
-DROP TABLE orders;
+DROP TABLE customers;
 
 DROP TABLE payments;
 
-DROP TABLE items;
+
 
 DROP TABLE delivereries;
 
-DROP TABLE customers;
+DROP TABLE items;
+
+DROP TABLE orders;
 
 DROP TABLE order_items;

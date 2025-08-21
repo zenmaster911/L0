@@ -23,7 +23,7 @@ func (h *Handler) InitRouter() *chi.Mux {
 
 	router.Route("/order", func(r chi.Router) {
 		r.Post("/", h.CreateOrder)
-		r.Get("/<order_uid>", h.GetOrderByUid)
+		r.Get("/{order_uid}", h.GetOrderByUid)
 	})
 	return router
 }

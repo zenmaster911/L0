@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 
@@ -10,6 +11,7 @@ import (
 
 func (h *Handler) GetOrderByUid(w http.ResponseWriter, r *http.Request) {
 	orderUid := getOrderUid(w, r)
+	fmt.Println(orderUid)
 	if orderUid == "" {
 		http.Error(w, "Empty order UID", http.StatusBadRequest)
 		return

@@ -27,7 +27,7 @@ CREATE TABLE payments
     currency VARCHAR (3) DEFAULT 'RUB',
     provider VARCHAR (255) NOT NULL,
     amount INT DEFAULT 1,
-    payment_dt TIMESTAMP NOT NULL,
+    payment_dt BIGINT NOT NULL,
     bank VARCHAR(255) NOT NULL,
     delivery_cost INT DEFAULT 0,
     goods_total INT DEFAULT 1,
