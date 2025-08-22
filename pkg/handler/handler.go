@@ -3,11 +3,13 @@ package handler
 import (
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/chi/v5"
+	"github.com/rogpeppe/go-internal/cache"
 	"github.com/zenmaster911/L0/pkg/service"
 )
 
 type Handler struct {
 	services *service.Service
+	cache    *cache.Cache
 }
 
 func NewHandler(services *service.Service) *Handler {

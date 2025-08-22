@@ -6,9 +6,11 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"maps"
 	"time"
 
 	kafkaconsumer "github.com/zenmaster911/L0/pkg/kafka_consumer"
+	"github.com/zenmaster911/L0/pkg/middleware"
 	"github.com/zenmaster911/L0/pkg/model"
 	"github.com/zenmaster911/L0/pkg/repository"
 	"github.com/zenmaster911/L0/pkg/service"
@@ -18,18 +20,22 @@ type Worker struct {
 	services *service.Service
 	consumer *kafkaconsumer.KafkaConsumer
 	db       *repository.Repository
+	Cache    *middleware.Cache
 }
 
-func NewWorker(services *service.Service, consumer *kafkaconsumer.KafkaConsumer, db *repository.Repository) *Worker {
+func NewWorker(services *service.Service, consumer *kafkaconsumer.KafkaConsumer, db *repository.Repository, cache *middleware.Cache) *Worker {
 	return &Worker{
 		services: services,
 		consumer: consumer,
 		db:       db,
+		Cache:    cache,
 	}
 }
 
 func (w *Worker) StartWorker(ctx context.Context) error {
-	//w.consumer.StartReading(ctx)
+	var messagesReceived int
+	var queue int
+
 	for {
 		select {
 		case <-ctx.Done():
@@ -50,15 +56,31 @@ func (w *Worker) StartWorker(ctx context.Context) error {
 				continue
 			}
 
-			uid, err := w.services.CreateOrder(&reply)
-			if err != nil {
-				log.Printf("creating order error: %v\n", err)
-				continue
+			messagesReceived++
+			queue++
+
+			if messagesReceived > 100 {
+				uid := w.Cache.MessagesList[messagesReceived]
+				maps.DeleteFunc(w.Cache.LastMessages, func(k string, v model.Reply) bool {
+					return k == uid
+				})
+				maps.DeleteFunc(w.Cache.MessagesList, func(k int, v string) bool {
+					return k == messagesReceived-100
+				})
 			}
-			log.Printf("order with uid %s created", uid)
-			// 	log.Printf("message received: Topic=%s Partition=%v Offset=%v Key=%s Value=%s",
-			// 		m.Topic, m.Partition, m.Offset, string(m.Key), string(m.Value))
-			// }
+			w.Cache.MessagesList[messagesReceived] = reply.OrderUid
+			w.Cache.LastMessages[reply.OrderUid] = reply
+			w.Cache.UnreadMessages[reply.OrderUid] = reply
+
+			for range queue {
+				uid, err := w.services.CreateOrder(&reply)
+				if err != nil {
+					log.Printf("creating order error: %v\n", err)
+					continue
+				}
+				log.Printf("order with uid %s created", uid)
+			}
+
 			time.Sleep(time.Second)
 		}
 	}
