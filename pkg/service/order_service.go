@@ -20,3 +20,7 @@ func (s *OrderService) GetOrderByUid(uid string) (model.Reply, error) {
 func (s *OrderService) CreateOrder(input *model.Reply) (uid string, err error) {
 	return s.repo.CreateOrder(input)
 }
+
+func (s *OrderService) CheckOrderExists(uid string) (bool, error) {
+	return s.repo.CheckOrderExists(uid)
+}

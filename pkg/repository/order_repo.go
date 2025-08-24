@@ -135,6 +135,18 @@ func (r *OrderPostgres) CreateOrder(input *model.Reply) (uid string, err error) 
 	return input.OrderUid, tx.Commit()
 }
 
+func (r *OrderPostgres) CheckOrderExists(uid string) (bool, error) {
+	var exists bool
+	err := r.db.QueryRow(`SELECT EXISTS(SELECT 1 FROM orders WHERE order_uid=$1)`, uid).Scan(&exists)
+	if err != nil {
+		return false, fmt.Errorf("existance check error: %v", err)
+	}
+	if exists {
+		return true, nil
+	}
+	return false, nil
+}
+
 func (r *OrderPostgres) GetOrderByUid(uid string) (model.Reply, error) {
 	var items []model.DeliveryItem
 	var payment model.Payment

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WB School demo</title>
+    <script>
+        function send_request(event) {
+            event.preventDefault(); // Предотвращаем стандартную отправку формы
+            document.getElementById("order_data").innerText = "Ищем информацию о заказе...";
+
+            // Получаем uid заказа
+            let uuid = document.getElementById("id_field").value;
+            if (uuid == "") {
+                document.getElementById("order_data").innerText = "Укажите номер заказа...";
+                return
+            }
+            var url = 'http://localhost:8081/order/' + uuid;
+            
+            var xhr = new XMLHttpRequest(); 
+            xhr.open('GET', url); 
+            xhr.onload = function () {
+                if (xhr.status === 200) { // Если статус успешный (200 OK)
+                    // Динамическое обновление содержимого div#result
+                    const data = JSON.parse(xhr.responseText);
+                    const formattedJson = JSON.stringify(data,  null, 2);
+                    document.getElementById("order_data").innerText = formattedJson;
+                } 
+                else if (xhr.status === 404) {
+                     document.getElementById("order_data").innerText = "Такого заказа не существует"
+                } else {
+                    console.error(`Ошибка ${xhr.status}: ${xhr.statusText}`);
+
+                    document.getElementById("order_data").innerText = "Не удалось получить информацию о заказе"
+                }
+            };
+
+            
+        xhr.send();
+            
+        }
+    </script>
+</head>
+<body>
+    <form method="GET">
+        <label for="id_field">ID:</label>
+        <input type="text" id="id_field" name="id" required />
+        <button onclick="send_request(event)">Отправить</button>
+    </form>
+    <div id="order_data">
+
+    </div>
+</body>
+</html>

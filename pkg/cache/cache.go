@@ -29,7 +29,8 @@ func (c *Cache) CacheLoad() error {
 		return fmt.Errorf("loading order uids to cache error: %v", err)
 	}
 
-	for _, v := range uids {
+	for i, v := range uids {
+		c.MessagesList[i+1] = v
 		c.LastMessages[v], err = c.service.GetOrderByUid(v)
 		if err != nil {
 			return fmt.Errorf("loading message to cache error: %v", err)

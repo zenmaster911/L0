@@ -12,6 +12,7 @@ type Cache interface {
 type Order interface {
 	GetOrderByUid(uid string) (model.Reply, error)
 	CreateOrder(input *model.Reply) (uid string, err error)
+	CheckOrderExists(uid string) (bool, error)
 }
 
 type Item interface {
