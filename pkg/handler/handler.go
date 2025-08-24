@@ -1,9 +1,9 @@
 package handler
 
 import (
+	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
-	"github.com/go-chi/chi/v5"
-	"github.com/rogpeppe/go-internal/cache"
+	"github.com/zenmaster911/L0/pkg/cache"
 	"github.com/zenmaster911/L0/pkg/service"
 )
 
@@ -12,8 +12,8 @@ type Handler struct {
 	cache    *cache.Cache
 }
 
-func NewHandler(services *service.Service) *Handler {
-	return &Handler{services: services}
+func NewHandler(services *service.Service, cache *cache.Cache) *Handler {
+	return &Handler{services: services, cache: cache}
 }
 
 func (h *Handler) InitRouter() *chi.Mux {

@@ -15,6 +15,7 @@ import (
 	"github.com/zenmaster911/L0/internal/config"
 	"github.com/zenmaster911/L0/internal/db"
 	"github.com/zenmaster911/L0/internal/server"
+	"github.com/zenmaster911/L0/pkg/cache"
 	"github.com/zenmaster911/L0/pkg/handler"
 	kafkaconsumer "github.com/zenmaster911/L0/pkg/kafka_consumer"
 	"github.com/zenmaster911/L0/pkg/repository"
@@ -35,28 +36,18 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	// fmt.Println(os.Getenv("KAFKA_BROKER_ADDR"))
-	// kafkacfg := &kafkaconsumer.Config{
-	// 	BrokerAddr: os.Getenv("KAFKA_BROKER_ADDR"),
-	// 	GroupID:    os.Getenv("GROUP_ID"),
-	// 	Topic:      os.Getenv("TOPIC_NAME"),
-	// }
-
-	// kafkaReader := kafkaconsumer.NewKafkaConsumer(kafkacfg)
-	// if err != nil {
-	// 	log.Fatalf("error in creating Kafka consumer: %v", err)
-	// }
-	// defer kafkaReader.Close()
-
 	Repos := repository.NewRepository(dbConn)
 	Services := service.NewService(Repos)
-	Handlers := handler.NewHandler(Services)
+	Cache := cache.NewCache(Services)
+	Handlers := handler.NewHandler(Services, Cache)
 	KafkaReader := kafkaconsumer.NewKafkaConsumer(kafkacfg)
-	Worker := worker.NewWorker(Services, KafkaReader, Repos)
+	Worker := worker.NewWorker(Services, KafkaReader, Repos, Cache)
 
 	defer KafkaReader.Close()
 
 	srv := new(server.Server)
+
+	Cache.CacheLoad()
 
 	sig := make(chan os.Signal, 1)
 	signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
@@ -72,8 +63,6 @@ func main() {
 			log.Printf("HTTP server shutdown error: %v", err)
 		}
 	}()
-
-	log.Print("server started sucessfully, what do you wish,Master?")
 
 	wg.Add(2)
 	go func() {

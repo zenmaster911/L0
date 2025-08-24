@@ -5,6 +5,10 @@ import (
 	"github.com/zenmaster911/L0/pkg/repository"
 )
 
+type Cache interface {
+	CacheLoad() ([]string, error)
+}
+
 type Order interface {
 	GetOrderByUid(uid string) (model.Reply, error)
 	CreateOrder(input *model.Reply) (uid string, err error)
@@ -27,6 +31,7 @@ type Service struct {
 	Customer
 	Delivery
 	Item
+	Cache
 }
 
 func NewService(repo *repository.Repository) *Service {
@@ -35,5 +40,6 @@ func NewService(repo *repository.Repository) *Service {
 		Customer: NewCustomerservice(repo.Customer),
 		Delivery: NewDeliveryService(repo.Delivery),
 		Item:     NewItemService(repo.Item),
+		Cache:    NewCacheService(repo.Cache),
 	}
 }
