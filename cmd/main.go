@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -72,12 +71,14 @@ func main() {
 		}
 	}()
 
+	log.Printf("server is running on port %s\n", cfg.App.Port)
+
 	go func() {
 		defer wg.Done()
 		if err := Worker.StartWorker(ctx); err != nil {
 			log.Fatalf("kafka worker error: %v", err)
 		}
-		fmt.Printf("kafkaReader: %v\n", Worker)
+
 	}()
 
 	wg.Wait()
