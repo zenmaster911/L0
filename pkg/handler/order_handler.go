@@ -6,8 +6,11 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/zenmaster911/L0/pkg/model"
 )
+
+var validate = validator.New()
 
 func (h *Handler) GetOrderByUid(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -51,6 +54,11 @@ func (h *Handler) CreateOrder(w http.ResponseWriter, r *http.Request) {
 
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
 		http.Error(w, "invalid request body", http.StatusInternalServerError)
+	}
+
+	if err := validate.Struct(input); err != nil {
+		sendValidationErrors(w, err)
+		return
 	}
 
 	uid, err := h.services.Order.CreateOrder(&input)

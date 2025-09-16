@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"log"
 	"net/http"
 	"os"
@@ -66,7 +67,8 @@ func main() {
 	wg.Add(2)
 	go func() {
 		defer wg.Done()
-		if err := srv.Run(cfg.App.Port, Handlers.InitRouter()); err != nil && err != http.ErrServerClosed {
+		if err := srv.Run(cfg.App.Port, Handlers.InitRouter()); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			//err != http.ErrServerClosed {
 			log.Fatalf("fatal error in server startup: %s", err)
 		}
 	}()
