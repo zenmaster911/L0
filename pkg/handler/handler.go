@@ -12,10 +12,10 @@ import (
 
 type Handler struct {
 	services *service.Service
-	cache    *cache.Cache
+	cache    *cache.RedisCache
 }
 
-func NewHandler(services *service.Service, cache *cache.Cache) *Handler {
+func NewHandler(services *service.Service, cache *cache.RedisCache) *Handler {
 	return &Handler{services: services, cache: cache}
 }
 

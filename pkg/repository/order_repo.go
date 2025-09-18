@@ -109,7 +109,7 @@ func (r *OrderPostgres) CreateOrder(input *model.Reply) (uid string, err error) 
 	paymentUid := uuid.NewString()
 	paymentQuery := `INSERT INTO payments (payment_uid, transaction, request_id, currency, provider, amount, payment_dt, bank, delivery_cost, goods_total, custom_fee)
 	 VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`
-	if _, err = tx.Exec(paymentQuery, paymentUid, input.Payment.Transaction, input.Payment.RequeestId, input.Payment.Currency, input.Payment.Provider,
+	if _, err = tx.Exec(paymentQuery, paymentUid, input.Payment.Transaction, input.Payment.RequestId, input.Payment.Currency, input.Payment.Provider,
 		input.Payment.Amount, input.Payment.PaymentDt, input.Payment.Bank, input.Payment.DeliveryCost, input.Payment.GoodsTotal, input.Payment.CustomFee); err != nil {
 		tx.Rollback()
 		return "", fmt.Errorf("error in inserting payment into database %w", err)

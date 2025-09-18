@@ -12,6 +12,6 @@ func NewCacheService(repo repository.Cache) *CacheService {
 	}
 }
 
-func (s *CacheService) CacheLoad() ([]string, error) {
-	return s.repo.CacheLoad()
+func (s *CacheService) CacheLoad(limit int) ([]string, error) {
+	return s.repo.CacheLoad(limit)
 }

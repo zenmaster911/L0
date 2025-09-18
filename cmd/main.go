@@ -26,7 +26,7 @@ import (
 var wg sync.WaitGroup
 
 func main() {
-	cfg, kafkacfg := config.MustLoad()
+	cfg := config.MustLoad()
 	dbConn, err := db.NewPostgresDB(cfg.DB)
 	if err != nil {
 		log.Fatalf("failed to connect to database: %s", err)
@@ -38,16 +38,16 @@ func main() {
 
 	Repos := repository.NewRepository(dbConn)
 	Services := service.NewService(Repos)
-	Cache := cache.NewCache(Services)
+	Cache := cache.NewRedisCache(cfg.Redis, Services)
 	Handlers := handler.NewHandler(Services, Cache)
-	KafkaReader := kafkaconsumer.NewKafkaConsumer(kafkacfg)
+	KafkaReader := kafkaconsumer.NewKafkaConsumer(cfg.Kafka)
 	Worker := worker.NewWorker(Services, KafkaReader, Repos, Cache)
 
 	defer KafkaReader.Close()
 
 	srv := new(server.Server)
 
-	Cache.CacheLoad()
+	Cache.CacheLoad(ctx, cfg.Cache.CacheStartUpLimit)
 
 	sig := make(chan os.Signal, 1)
 	signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)

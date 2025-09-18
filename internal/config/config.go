@@ -1,9 +1,11 @@
 package config
 
 type Config struct {
-	App *AppConfig
-	DB  *DBConfig
-	//Kafka *KafkaConfig
+	App   *AppConfig
+	DB    *DBConfig
+	Kafka *KafkaConfig
+	Redis *RedisConfig
+	Cache *Cache
 }
 
 type AppConfig struct {
@@ -20,7 +22,20 @@ type DBConfig struct {
 }
 
 type KafkaConfig struct {
-	BrokerAddr string
-	GroupID    string
-	Topic      string
+	BrokerAddr string `mapstructure:"broker_addr"`
+	GroupID    string `mapstructure:"group_id"`
+	Topic      string `mapstructure:"topic"`
+}
+
+type RedisConfig struct {
+	Addr       string `mapstructure:"addr"`
+	Password   string `mapstructure:"password"`
+	User       string `mapstructure:"user"`
+	DB         int    `mapstructure:"db"`
+	MaxRetries int    `mapstructure:"max_retries"`
+	// DialTimeout time.Duration `mapstructure:"dial_timeout"`
+	// Timeout     time.Duration `mapstructure:"timeout"`
+}
+type Cache struct {
+	CacheStartUpLimit int `mapstructure:"limit"`
 }

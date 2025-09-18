@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -22,31 +23,39 @@ func (h *Handler) GetOrderByUid(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Empty order UID", http.StatusBadRequest)
 		return
 	}
-	if val, exist := h.cache.LastMessages[orderUid]; exist {
-		orderReply = val
-	} else {
-		exist, err := h.services.Order.CheckOrderExists(orderUid)
-		if err != nil {
-			log.Printf("order existance check error: %v", err)
+	orderReply, err := h.cache.ReadFromCache(context.Background(), orderUid)
+	if err != nil {
+		{
+			log.Printf("error \"%v\" appeared", err)
 			http.Error(w, "extracting order data error", http.StatusInternalServerError)
 			return
 		}
-		if !exist {
-			http.Error(w, "order with this uid doexn't exist", http.StatusNotFound)
-			return
-		}
-		val, err := h.services.Order.GetOrderByUid(orderUid)
-		if err != nil {
-			log.Printf("extracting order data error: %s", err)
-			http.Error(w, "extracting order data error", http.StatusInternalServerError)
-			return
-		}
-		orderReply = val
 	}
-
+	// if val, exist := h.cache.LastMessages[orderUid]; exist {
+	// 	orderReply = val
+	// } else {
+	// 	exist, err := h.services.Order.CheckOrderExists(orderUid)
+	// 	if err != nil {
+	// 		log.Printf("order existance check error: %v", err)
+	// 		http.Error(w, "extracting order data error", http.StatusInternalServerError)
+	// 		return
+	// 	}
+	// 	if !exist {
+	// 		http.Error(w, "order with this uid doexn't exist", http.StatusNotFound)
+	// 		return
+	// 	}
+	// 	val, err := h.services.Order.GetOrderByUid(orderUid)
+	// 	if err != nil {
+	// 		log.Printf("extracting order data error: %s", err)
+	// 		http.Error(w, "extracting order data error", http.StatusInternalServerError)
+	// 		return
+	// 	}
+	// 	orderReply = val
+	// }
+	fmt.Println(orderReply)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(orderReply)
+	json.NewEncoder(w).Encode(&orderReply)
 }
 
 func (h *Handler) CreateOrder(w http.ResponseWriter, r *http.Request) {
@@ -57,6 +66,7 @@ func (h *Handler) CreateOrder(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := validate.Struct(input); err != nil {
+		fmt.Printf("err: %v", err)
 		sendValidationErrors(w, err)
 		return
 	}

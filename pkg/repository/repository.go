@@ -6,7 +6,7 @@ import (
 )
 
 type Cache interface {
-	CacheLoad() ([]string, error)
+	CacheLoad(limit int) ([]string, error)
 }
 
 type Order interface {

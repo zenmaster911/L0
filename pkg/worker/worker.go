@@ -6,8 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"maps"
-	"slices"
 	"time"
 
 	"github.com/zenmaster911/L0/pkg/cache"
@@ -21,10 +19,10 @@ type Worker struct {
 	services *service.Service
 	consumer *kafkaconsumer.KafkaConsumer
 	db       *repository.Repository
-	Cache    *cache.Cache
+	Cache    *cache.RedisCache
 }
 
-func NewWorker(services *service.Service, consumer *kafkaconsumer.KafkaConsumer, db *repository.Repository, cache *cache.Cache) *Worker {
+func NewWorker(services *service.Service, consumer *kafkaconsumer.KafkaConsumer, db *repository.Repository, cache *cache.RedisCache) *Worker {
 	return &Worker{
 		services: services,
 		consumer: consumer,
@@ -34,9 +32,10 @@ func NewWorker(services *service.Service, consumer *kafkaconsumer.KafkaConsumer,
 }
 
 func (w *Worker) StartWorker(ctx context.Context) error {
-	var messagesReceived int
-	var queue int
-	messagesReceived = len(w.Cache.LastMessages)
+	// var messagesReceived int
+	// var queue int
+	// messagesReceived = len(w.Cache.LastMessages)
+	unsavedOrders := make([]string, 0)
 	for {
 		select {
 		case <-ctx.Done():
@@ -58,46 +57,40 @@ func (w *Worker) StartWorker(ctx context.Context) error {
 				continue
 			}
 
-			messagesReceived++
-			queue++
-
-			w.Cache.MessagesList[messagesReceived] = reply.OrderUid
-			w.Cache.LastMessages[reply.OrderUid] = reply
-			w.Cache.UnreadMessages[queue] = reply
-
-			if len(w.Cache.MessagesList) > 20 {
-				keys := slices.Sorted(maps.Keys(w.Cache.MessagesList))
-				uid := w.Cache.MessagesList[keys[0]]
-				maps.DeleteFunc(w.Cache.LastMessages, func(k string, v model.Reply) bool {
-					return k == uid
-				})
-				maps.DeleteFunc(w.Cache.MessagesList, func(k int, v string) bool {
-					return k == keys[0]
-				})
+			err = w.Cache.AddToCache(ctx, reply)
+			if err != nil {
+				log.Printf("failed to write %s to cache due to: %v\n", reply.OrderUid, err)
+				continue
 			}
+			// messagesReceived++
+			// queue++
+
+			// w.Cache.MessagesList[messagesReceived] = reply.OrderUid
+			// w.Cache.LastMessages[reply.OrderUid] = reply
+			// w.Cache.UnreadMessages[queue] = reply
+
+			// if len(w.Cache.MessagesList) > 20 {
+			// 	keys := slices.Sorted(maps.Keys(w.Cache.MessagesList))
+			// 	uid := w.Cache.MessagesList[keys[0]]
+			// 	maps.DeleteFunc(w.Cache.LastMessages, func(k string, v model.Reply) bool {
+			// 		return k == uid
+			// 	})
+			// 	maps.DeleteFunc(w.Cache.MessagesList, func(k int, v string) bool {
+			// 		return k == keys[0]
+			// 	})
+			// }
 
 			if err := w.db.StatusCheck.DBConnectionCheck(); err != nil {
+				unsavedOrders = append(unsavedOrders, reply.OrderUid)
 				log.Printf("db connection error: %v, message will be saved to cache", err)
 				continue
 			}
-			for i := range queue {
-				reply := w.Cache.UnreadMessages[i+1]
-				uid, err := w.services.CreateOrder(&reply)
+			for _, v := range unsavedOrders {
+				reply, err = w.Cache.ReadFromCache(ctx, v)
 				if err != nil {
-					maps.DeleteFunc(w.Cache.LastMessages, func(k string, v model.Reply) bool {
-						return k == uid
-					})
-					maps.DeleteFunc(w.Cache.MessagesList, func(k int, v string) bool {
-						return v == uid
-					})
-					log.Printf("creating order error: %v\nMessage with %s uid deleted from the cache", err, uid)
-					continue
+
 				}
-				log.Printf("order with uid %s created", uid)
-			}
-			queue = 0
-			for _, val := range w.Cache.LastMessages {
-				fmt.Println(val, "\n")
+				log.Printf("order with uid %s created", v)
 			}
 
 			time.Sleep(time.Second)

@@ -1,19 +1,15 @@
 package config
 
 import (
+	"fmt"
 	"log"
-	"os"
 
-	"github.com/joho/godotenv"
 	"github.com/spf13/viper"
 )
 
-func MustLoad() (*Config, *KafkaConfig) {
+func MustLoad() *Config {
 	configPath := "local.yaml"
 	viper.SetConfigFile(configPath)
-	if err := godotenv.Load(); err != nil {
-		log.Fatalf("error loading env file: %s", err)
-	}
 
 	if err := viper.ReadInConfig(); err != nil {
 		log.Fatalf("error in reading config: %s", err)
@@ -23,11 +19,12 @@ func MustLoad() (*Config, *KafkaConfig) {
 	if err := viper.Unmarshal(&cfg); err != nil {
 		log.Fatalf("error in unmarshalign config: %s", err)
 	}
-	var kafka KafkaConfig
-	cfg.DB.Password = os.Getenv("DB_PASSWORD")
-	kafka.BrokerAddr = os.Getenv("KAFKA_BROKER_ADDR")
-	kafka.GroupID = os.Getenv("GROUP_ID")
-	kafka.Topic = os.Getenv("TOPIC_NAME")
+	fmt.Println(cfg.Cache.CacheStartUpLimit)
+	//var kafka KafkaConfig
+	// cfg.DB.Password = os.Getenv("DB_PASSWORD")
+	// kafka.BrokerAddr = os.Getenv("KAFKA_BROKER_ADDR")
+	// kafka.GroupID = os.Getenv("GROUP_ID")
+	// kafka.Topic = os.Getenv("TOPIC_NAME")
 
-	return &cfg, &kafka
+	return &cfg
 }
