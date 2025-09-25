@@ -38,7 +38,7 @@ func main() {
 
 	Repos := repository.NewRepository(dbConn)
 	Services := service.NewService(Repos)
-	Cache := cache.NewRedisCache(cfg.Redis, Services)
+	Cache := cache.NewCache(cfg.Redis, Services)
 	Handlers := handler.NewHandler(Services, Cache)
 	KafkaReader := kafkaconsumer.NewKafkaConsumer(cfg.Kafka)
 	Worker := worker.NewWorker(Services, KafkaReader, Repos, Cache)

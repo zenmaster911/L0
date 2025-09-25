@@ -11,10 +11,22 @@ import (
 	"github.com/zenmaster911/L0/pkg/service"
 )
 
+//go:generate minimock -i github.com/zenmaster911/L0/pkg/cache.* -o ./cache_mocks -s _mock.go
+
 type RedisCacheInterface interface {
 	CacheLoad(ctx context.Context, limit int) error
 	AddToCache(ctx context.Context, order model.Reply) error
 	ReadFromCache(ctx context.Context, uid string) (reply model.Reply, err error)
+}
+
+type Cache struct {
+	RedisCacheInterface
+}
+
+func NewCache(cfg *config.RedisConfig, service *service.Service) *Cache {
+	return &Cache{
+		RedisCacheInterface: NewRedisCache(cfg, service),
+	}
 }
 
 type RedisCache struct {

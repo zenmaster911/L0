@@ -1,16 +1,24 @@
 package handler
 
 import (
+	"bytes"
+	"encoding/json"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/gojuno/minimock/v3"
+	"github.com/stretchr/testify/assert"
+	"github.com/zenmaster911/L0/pkg/cache"
+	"github.com/zenmaster911/L0/pkg/cache/cache_mocks"
 	"github.com/zenmaster911/L0/pkg/model"
 	"github.com/zenmaster911/L0/pkg/service"
 	"github.com/zenmaster911/L0/pkg/service/mocks"
 )
 
-func testHandler_CreateOrder(t *testing.T) {
-	type mockBehaviour func(s *mocks.OrderMock, reply *model.Reply)
+func TestHandler_CreateOrder(t *testing.T) {
+	type mockBehaviour func(s *mocks.OrderMock, ca *cache_mocks.RedisCacheInterfaceMock, reply *model.Reply)
 
 	testTable := []struct {
 		name                string
@@ -72,20 +80,36 @@ func testHandler_CreateOrder(t *testing.T) {
 				OofShard:          "1",
 			},
 			inputErr: nil,
-			mockBehavior: func(s *mocks.OrderMock, reply *model.Reply) {
+			mockBehavior: func(s *mocks.OrderMock, ca *cache_mocks.RedisCacheInterfaceMock, reply *model.Reply) {
 				s.CreateOrderMock.Expect(reply).Return("b563feb7b2b84b6test", nil)
 			},
 			expectedStatusCode:  201,
-			expectedRequestBody: "b563feb7b2b84b6test",
+			expectedRequestBody: `{"order_uid":"b563feb7b2b84b6test"}`,
 		},
 	}
 	for _, tt := range testTable {
 		t.Run(tt.name, func(t *testing.T) {
 			c := minimock.NewController(t)
 			mockService := mocks.NewOrderMock(c)
-			tt.mockBehavior(mockService, &tt.inputArgs)
+			mockCache := cache_mocks.NewRedisCacheInterfaceMock(c)
+			tt.mockBehavior(mockService, mockCache, &tt.inputArgs)
 			services := &service.Service{Order: mockService}
-			h := NewHandler(services)
+			cache := &cache.Cache{RedisCacheInterface: mockCache}
+			h := NewHandler(services, cache)
+
+			router := chi.NewRouter()
+			router.Post("/order", h.CreateOrder)
+			w := httptest.NewRecorder()
+
+			body, _ := json.Marshal(tt.inputArgs)
+			req := httptest.NewRequest(http.MethodPost, "/order", bytes.NewReader(body))
+			req.Header.Set("Content-Type", "application/json")
+
+			router.ServeHTTP(w, req)
+
+			assert.Equal(t, tt.expectedStatusCode, w.Code)
+
+			assert.JSONEq(t, tt.expectedRequestBody, w.Body.String(), w.Body.String())
 
 		})
 	}

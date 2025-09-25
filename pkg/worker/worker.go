@@ -19,10 +19,10 @@ type Worker struct {
 	services *service.Service
 	consumer *kafkaconsumer.KafkaConsumer
 	db       *repository.Repository
-	Cache    *cache.RedisCache
+	Cache    *cache.Cache
 }
 
-func NewWorker(services *service.Service, consumer *kafkaconsumer.KafkaConsumer, db *repository.Repository, cache *cache.RedisCache) *Worker {
+func NewWorker(services *service.Service, consumer *kafkaconsumer.KafkaConsumer, db *repository.Repository, cache *cache.Cache) *Worker {
 	return &Worker{
 		services: services,
 		consumer: consumer,

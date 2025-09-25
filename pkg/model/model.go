@@ -16,7 +16,7 @@ type Payment struct {
 	Currency     string    `json:"currency" validate:"required,min=2,max=4" db:"currency"`
 	Provider     string    `json:"provider" validate:"required,min=3,max=15" db:"provider"`
 	Amount       int       `json:"amount" validate:"required" db:"amount"`
-	PaymentDt    int       `json:"payment_dt" validate:"required,min=8,max=15" db:"payment_dt"`
+	PaymentDt    int       `json:"payment_dt" validate:"required" db:"payment_dt"`
 	Bank         string    `json:"bank" validate:"required,min=1,max=20"  db:"bank"`
 	DeliveryCost int       `json:"delivery_cost" validate:"required" db:"delivery_cost"`
 	GoodsTotal   int       `json:"goods_total"  validate:"required" db:"goods_total"`
