@@ -62,23 +62,6 @@ func (w *Worker) StartWorker(ctx context.Context) error {
 				log.Printf("failed to write %s to cache due to: %v\n", reply.OrderUid, err)
 				continue
 			}
-			// messagesReceived++
-			// queue++
-
-			// w.Cache.MessagesList[messagesReceived] = reply.OrderUid
-			// w.Cache.LastMessages[reply.OrderUid] = reply
-			// w.Cache.UnreadMessages[queue] = reply
-
-			// if len(w.Cache.MessagesList) > 20 {
-			// 	keys := slices.Sorted(maps.Keys(w.Cache.MessagesList))
-			// 	uid := w.Cache.MessagesList[keys[0]]
-			// 	maps.DeleteFunc(w.Cache.LastMessages, func(k string, v model.Reply) bool {
-			// 		return k == uid
-			// 	})
-			// 	maps.DeleteFunc(w.Cache.MessagesList, func(k int, v string) bool {
-			// 		return k == keys[0]
-			// 	})
-			// }
 
 			if err := w.db.StatusCheck.DBConnectionCheck(); err != nil {
 				unsavedOrders = append(unsavedOrders, reply.OrderUid)

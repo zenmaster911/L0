@@ -11,8 +11,16 @@ import (
 	"github.com/zenmaster911/L0/internal/config"
 )
 
+//go:generate minimock -i github.com/zenmaster911/L0/pkg/kafka_consumer.KafkaReader -o ./kafka_mocks -s _mock.go
+
+type KafkaReader interface {
+	FetchMessage(ctx context.Context) (kafka.Message, error)
+	ReadMessage(ctx context.Context) (kafka.Message, error)
+	Close() error
+}
+
 type KafkaConsumer struct {
-	Reader *kafka.Reader
+	Reader KafkaReader
 }
 
 func NewKafkaConsumer(config *config.KafkaConfig) *KafkaConsumer {
