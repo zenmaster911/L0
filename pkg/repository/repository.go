@@ -5,6 +5,8 @@ import (
 	"github.com/zenmaster911/L0/pkg/model"
 )
 
+//go:generate minimock -i github.com/zenmaster911/L0/pkg/repository.* -o ./repo_mocks -s _mock.go
+
 type Cache interface {
 	CacheLoad(limit int) ([]string, error)
 }

@@ -81,9 +81,10 @@ func (rc *RedisCache) AddToCache(ctx context.Context, order model.Reply) error {
 func (rc *RedisCache) ReadFromCache(ctx context.Context, uid string) (reply model.Reply, err error) {
 	err = rc.Client.Get(context.Background(), uid).Scan(&reply)
 	if err != nil {
-		{
-			return reply, fmt.Errorf("read from cache error: %v", err)
+		if err == redis.Nil {
+			return reply, fmt.Errorf("order uid not found")
 		}
+		return reply, fmt.Errorf("read from cache error: %v", err)
 	}
 	fmt.Println(reply.OrderUid)
 	return reply, nil
