@@ -43,9 +43,6 @@ func NewRedisCache(cfg *config.RedisConfig, service *service.Service) *RedisCach
 			DB:         cfg.DB,
 			Username:   cfg.User,
 			MaxRetries: cfg.MaxRetries,
-			// DialTimeout:  cfg.DialTimeout * time.Second,
-			// ReadTimeout:  cfg.Timeout * time.Second,
-			// WriteTimeout: cfg.Timeout * time.Second,
 		}),
 	}
 }

@@ -32,9 +32,7 @@ func NewWorker(services *service.Service, consumer *kafkaconsumer.KafkaConsumer,
 }
 
 func (w *Worker) StartWorker(ctx context.Context) error {
-	// var messagesReceived int
-	// var queue int
-	// messagesReceived = len(w.Cache.LastMessages)
+
 	unsavedOrders := make([]string, 0)
 	for {
 		select {
