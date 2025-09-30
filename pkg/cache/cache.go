@@ -58,7 +58,6 @@ func (rc *RedisCache) CacheLoad(ctx context.Context, limit int) error {
 		if err != nil {
 			log.Printf("%s failed to upload to cache due to: %v", v, err)
 		}
-		fmt.Println(v)
 		err = rc.Client.Set(ctx, v, order, 0).Err()
 		if err != nil {
 			log.Printf("%s failed to upload to cache due to: %v", v, err)

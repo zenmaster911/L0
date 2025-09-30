@@ -50,11 +50,7 @@ func (r *OrderPostgres) CreateOrder(input *model.Reply) (uid string, err error) 
 		}
 		if exists {
 			tx.Rollback()
-			if isTransietError(err) && i < r.maxRetries-1 {
-				log.Printf("retrying %d time with error: %s", i+1, err)
-				time.Sleep(time.Duration(r.retryDelay) * time.Millisecond)
-				continue
-			}
+
 			return "", fmt.Errorf("order %s already exists", input.OrderUid)
 		}
 		// так как на данный момент база данных пустая, исхожу из того что в запросе упомянуты только валидные товары и, при необходимости, добавляю их в бд.

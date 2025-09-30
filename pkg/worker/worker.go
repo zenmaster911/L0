@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"slices"
 	"time"
 
 	"github.com/zenmaster911/L0/pkg/cache"
@@ -34,6 +35,7 @@ func NewWorker(services *service.Service, consumer *kafkaconsumer.KafkaConsumer,
 func (w *Worker) StartWorker(ctx context.Context) error {
 
 	unsavedOrders := make([]string, 0)
+OuterLoop:
 	for {
 		select {
 		case <-ctx.Done():
@@ -55,13 +57,14 @@ func (w *Worker) StartWorker(ctx context.Context) error {
 					if retries == w.consumer.Retries-1 {
 						log.Printf("unmarshaling message from kafka attempt %d failed with error: %v. Message will be sent to DLQ\n", retries+1, err)
 						w.consumer.SendToDLQ(ctx, m, err)
-						break
+						continue OuterLoop
 					}
 					log.Printf("unmarshaling message from kafka attempt %d failed with error: %v\n", retries+1, err)
 					continue
 				} else {
 					break
 				}
+
 			}
 
 			err = w.Cache.AddToCache(ctx, reply)
@@ -77,6 +80,13 @@ func (w *Worker) StartWorker(ctx context.Context) error {
 				continue
 			}
 
+			uid, err := w.services.CreateOrder(&reply)
+			if err != nil {
+				log.Printf("attempt failed to save order %s to db due to: %v\n", reply.OrderUid, err)
+				continue
+			}
+			log.Printf("order with uid %s created\n", uid)
+
 			for _, v := range unsavedOrders {
 				reply, err = w.Cache.ReadFromCache(ctx, v)
 				if err != nil {
@@ -85,7 +95,7 @@ func (w *Worker) StartWorker(ctx context.Context) error {
 				}
 				log.Printf("order with uid %s created\n", v)
 			}
-
+			unsavedOrders = slices.Delete(unsavedOrders, 0, len(unsavedOrders))
 			time.Sleep(time.Second)
 		}
 	}

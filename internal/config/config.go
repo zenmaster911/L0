@@ -1,12 +1,12 @@
 package config
 
 type Config struct {
-	App     *AppConfig
-	DB      *DBConfig
-	Retries *DBRetriesConfig
-	Kafka   *KafkaConfig
-	Redis   *RedisConfig
-	Cache   *Cache
+	App       *AppConfig
+	DB        *DBConfig
+	DBRetries *DBRetriesConfig
+	Kafka     *KafkaConfig
+	Redis     *RedisConfig
+	Cache     *Cache
 }
 
 type AppConfig struct {
