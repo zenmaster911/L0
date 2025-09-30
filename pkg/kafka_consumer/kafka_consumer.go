@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"strconv"
 	"time"
 
 	"github.com/segmentio/kafka-go"
@@ -19,8 +20,15 @@ type KafkaReader interface {
 	Close() error
 }
 
+type KafkaWriter interface {
+	WriteMessages(ctx context.Context, messages ...kafka.Message) error
+	Close() error
+}
+
 type KafkaConsumer struct {
-	Reader KafkaReader
+	Reader  KafkaReader
+	Writer  KafkaWriter
+	Retries int
 }
 
 func NewKafkaConsumer(config *config.KafkaConfig) *KafkaConsumer {
@@ -30,10 +38,34 @@ func NewKafkaConsumer(config *config.KafkaConfig) *KafkaConsumer {
 			GroupID:     config.GroupID,
 			Topic:       config.Topic,
 			StartOffset: kafka.LastOffset,
-		})}
+		}),
+		Writer: kafka.NewWriter(kafka.WriterConfig{
+			Brokers:  []string{config.BrokerAddr},
+			Topic:    config.DLQTopic,
+			Balancer: &kafka.LeastBytes{},
+		}),
+		Retries: config.MaxRetries,
+	}
+
+}
+
+func (k *KafkaConsumer) SendToDLQ(ctx context.Context, m kafka.Message, err error) {
+	dlqMessage := kafka.Message{
+		Value: m.Value,
+		Headers: []kafka.Header{
+			{Key: "original_topic", Value: []byte(m.Topic)},
+			{Key: "original_partition", Value: []byte(strconv.Itoa(m.Partition))},
+			{Key: "original_offset", Value: []byte(strconv.Itoa(int(m.Offset)))},
+			{Key: "error", Value: []byte(err.Error())},
+		},
+	}
+	if err := k.Writer.WriteMessages(ctx, dlqMessage); err != nil {
+		log.Printf("message sending to DLQ error: %v\n", err)
+	}
 }
 
 func (k *KafkaConsumer) StartReading(ctx context.Context) {
+
 	for {
 		select {
 		case <-ctx.Done():
@@ -57,6 +89,11 @@ func (k *KafkaConsumer) StartReading(ctx context.Context) {
 
 func (k *KafkaConsumer) Close() {
 	if err := k.Reader.Close(); err != nil {
-		log.Printf("connection closing error: %s", err)
+		log.Printf("connection reader closing error: %s", err)
+	}
+	if err := k.Writer.Close(); err != nil {
+
+		log.Printf("connection DLQ writer closing error: %s", err)
+
 	}
 }

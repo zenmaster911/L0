@@ -50,9 +50,18 @@ func (w *Worker) StartWorker(ctx context.Context) error {
 				continue
 			}
 			var reply model.Reply
-			if err = json.Unmarshal(m.Value, &reply); err != nil {
-				log.Printf("unmarshaling message from kafka error: %v\n", err)
-				continue
+			for retries := 0; retries < w.consumer.Retries; retries++ {
+				if err = json.Unmarshal(m.Value, &reply); err != nil {
+					if retries == w.consumer.Retries-1 {
+						log.Printf("unmarshaling message from kafka attempt %d failed with error: %v. Message will be sent to DLQ\n", retries+1, err)
+						w.consumer.SendToDLQ(ctx, m, err)
+						break
+					}
+					log.Printf("unmarshaling message from kafka attempt %d failed with error: %v\n", retries+1, err)
+					continue
+				} else {
+					break
+				}
 			}
 
 			err = w.Cache.AddToCache(ctx, reply)
@@ -64,14 +73,17 @@ func (w *Worker) StartWorker(ctx context.Context) error {
 			if err := w.db.StatusCheck.DBConnectionCheck(); err != nil {
 				unsavedOrders = append(unsavedOrders, reply.OrderUid)
 				log.Printf("db connection error: %v, message will be saved to cache", err)
+				time.Sleep(time.Second)
 				continue
 			}
+
 			for _, v := range unsavedOrders {
 				reply, err = w.Cache.ReadFromCache(ctx, v)
 				if err != nil {
-
+					log.Printf("failed to read %s from cache due to: %v\n", v, err)
+					continue
 				}
-				log.Printf("order with uid %s created", v)
+				log.Printf("order with uid %s created\n", v)
 			}
 
 			time.Sleep(time.Second)

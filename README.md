@@ -11,9 +11,10 @@
         go get -u github.com/google/uuid@v1.6.0 \
         go get -u github.com/jackc/pgx/v5@v5.7.5 \
         go get -u github.com/jmoiron/sqlx@v1.4.0 \
-        go get -u github.com/joho/godotenv@v1.5.1 \
         go get -u github.com/segmentio/kafka-go@v0.4.48 \
         go get -u github.com/spf13/viper@v1.20.1
+		go get -u github.com/redis/go-redis/v9
+		go get -u github.com/gojuno/minimock/v3
     
     Создайте переменную окружения .env, пример заполнения можно скопировать из .env.example.
 	
@@ -29,7 +30,7 @@
 
 		Для запуска приложения выполните следующие шаги:
 		
-			-Проверьте наличие файла конфигурации .env и local.yaml
+			-Проверьте наличие файла конфигурации local.yaml
 
 			-Установите зависимости если ранее не сделали этого:
 
@@ -144,7 +145,6 @@
 		├── schema/               			# Схемы базы данных
 		│   ├── 20250809080419_init.down.sql # Миграция базы данных вниз
 		│   └── 20250809080419_init.up.sql 	# Миграция базы данных вверх
-		├── .env                  			# Файл переменных окружения
 		├── .gitignore            			# Игнорируемые файлы для Git
 		├── docker-compose.yaml    			# Конфигурация Docker Compose
 		├── docker-compose.yamlZoneId... 	# Дополнительная конфигурация Docker Compose
@@ -153,6 +153,5 @@
 		├── local.yaml            			# Локальная конфигурация
 		└── README.md             			# Текущий документ
 
--Тестирование
-	Будет добавлено в дальнейших версиях
+
 

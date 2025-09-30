@@ -5,6 +5,30 @@ db:
   host: "localhost"
   port: "5436"
   username: "postgres"
-  password: "-"
+  password: "12345"
   dbname: "postgres"
   sslmode: "disable"
+  open_conns: 25
+  idle_conns: 10
+  lifetime: 2
+
+db_retries:
+  db_retries:  5
+  db_retry_delay: 100
+
+
+kafka:
+  broker_addr: "localhost:9093"
+  group_id: "group_id"
+  topic: "test-topic"
+
+redis:
+  addr: "localhost:6379"
+  password: "12345"
+  user: "default"
+  db: "0"
+  max_retries: "3"
+
+
+cache:
+  limit: "10"

@@ -34,6 +34,8 @@ type KafkaConfig struct {
 	BrokerAddr string `mapstructure:"broker_addr"`
 	GroupID    string `mapstructure:"group_id"`
 	Topic      string `mapstructure:"topic"`
+	DLQTopic   string `mapstructure:"dlq_topic"`
+	MaxRetries int    `mapstructure:"max_retries"`
 }
 
 type RedisConfig struct {

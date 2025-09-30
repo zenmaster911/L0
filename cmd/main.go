@@ -68,7 +68,6 @@ func main() {
 	go func() {
 		defer wg.Done()
 		if err := srv.Run(cfg.App.Port, Handlers.InitRouter()); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			//err != http.ErrServerClosed {
 			log.Fatalf("fatal error in server startup: %s", err)
 		}
 	}()
