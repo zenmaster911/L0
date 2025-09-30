@@ -36,7 +36,7 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	Repos := repository.NewRepository(dbConn)
+	Repos := repository.NewRepository(dbConn, cfg.Retries)
 	Services := service.NewService(Repos)
 	Cache := cache.NewCache(cfg.Redis, Services)
 	Handlers := handler.NewHandler(Services, Cache)

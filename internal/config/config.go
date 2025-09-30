@@ -1,11 +1,12 @@
 package config
 
 type Config struct {
-	App   *AppConfig
-	DB    *DBConfig
-	Kafka *KafkaConfig
-	Redis *RedisConfig
-	Cache *Cache
+	App     *AppConfig
+	DB      *DBConfig
+	Retries *DBRetriesConfig
+	Kafka   *KafkaConfig
+	Redis   *RedisConfig
+	Cache   *Cache
 }
 
 type AppConfig struct {
@@ -13,12 +14,20 @@ type AppConfig struct {
 }
 
 type DBConfig struct {
-	Host     string `mapstructure:"host"`
-	Port     string `mapstructure:"port"`
-	Username string `mapstructure:"username"`
-	Password string `mapstructure:"password"`
-	DBName   string `mapstructure:"dbname"`
-	SSLMode  string `mapstructure:"sslmode"`
+	Host         string `mapstructure:"host"`
+	Port         string `mapstructure:"port"`
+	Username     string `mapstructure:"username"`
+	Password     string `mapstructure:"password"`
+	DBName       string `mapstructure:"dbname"`
+	SSLMode      string `mapstructure:"sslmode"`
+	MaxOpenConns int    `mapstructure:"open_conns"`
+	MaxIdleConns int    `mapstructure:"idle_conns"`
+	MaxLifetime  int    `mapstructure:"lifetime"`
+}
+
+type DBRetriesConfig struct {
+	MaxRetries int `mapstructure:"db_retries"`
+	RetryDelay int `mapstructure:"db_retry_delay"`
 }
 
 type KafkaConfig struct {
@@ -33,8 +42,6 @@ type RedisConfig struct {
 	User       string `mapstructure:"user"`
 	DB         int    `mapstructure:"db"`
 	MaxRetries int    `mapstructure:"max_retries"`
-	// DialTimeout time.Duration `mapstructure:"dial_timeout"`
-	// Timeout     time.Duration `mapstructure:"timeout"`
 }
 type Cache struct {
 	CacheStartUpLimit int `mapstructure:"limit"`

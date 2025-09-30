@@ -2,6 +2,7 @@ package repository
 
 import (
 	"github.com/jmoiron/sqlx"
+	"github.com/zenmaster911/L0/internal/config"
 	"github.com/zenmaster911/L0/pkg/model"
 )
 
@@ -42,9 +43,9 @@ type Repository struct {
 	Cache
 }
 
-func NewRepository(db *sqlx.DB) *Repository {
+func NewRepository(db *sqlx.DB, cfg *config.DBRetriesConfig) *Repository {
 	return &Repository{
-		Order:       NewOrderPostgres(db),
+		Order:       NewOrderPostgres(db, cfg),
 		Item:        NewItemsPostgres(db),
 		Customer:    NewCustomerPostgres(db),
 		Delivery:    NewDeliveryPostgrtes(db),

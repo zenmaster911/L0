@@ -38,8 +38,7 @@ func (h *Handler) GetOrderByUid(w http.ResponseWriter, r *http.Request) {
 
 		} else {
 			log.Printf("error \"%v\" appeared", err)
-			// http.Error(w, "extracting order data error", http.StatusInternalServerError)
-			// return
+
 		}
 		orderReply, err = h.services.Order.GetOrderByUid(orderUid)
 		if err != nil {
