@@ -2,7 +2,6 @@ package handler
 
 import (
 	"net/http"
-	"os"
 
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/chi/v5"
@@ -26,7 +25,7 @@ func (h *Handler) InitRouter() *chi.Mux {
 	router.Use(middleware.Recoverer)
 	router.Use(middleware.URLFormat)
 
-	staticDir := os.Getenv("STATIC_DIR")
+	staticDir := "frontend"
 	fs := http.FileServer(http.Dir(staticDir))
 	router.Handle("/*", fs)
 
