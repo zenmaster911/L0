@@ -16,8 +16,7 @@
 		go get -u github.com/redis/go-redis/v9
 		go get -u github.com/gojuno/minimock/v3
     
-    Создайте переменную окружения .env, пример заполнения можно скопировать из .env.example.
-	
+  	
 	При необходимости измените значения полей в local.yaml
 
 -Эксплуатация:
