@@ -8,19 +8,22 @@ db:
   password: "12345"
   dbname: "postgres"
   sslmode: "disable"
-  open_conns: 25
-  idle_conns: 10
-  lifetime: 2
+  open_conns: "25"
+  idle_conns: "10"
+  lifetime: "2"
 
-db_retries:
-  db_retries:  5
-  db_retry_delay: 100
+dbretries:
+  db_retries:  "5"
+  db_retry_delay: "100"
 
 
 kafka:
   broker_addr: "localhost:9093"
   group_id: "group_id"
   topic: "test-topic"
+  max_retries: "3"
+  dlq_topic: "dlq_topic"
+  
 
 redis:
   addr: "localhost:6379"
