@@ -53,7 +53,7 @@ type Delivery struct {
 	City    string `json:"city" validate:"required,min=3,max=30" db:"city"`
 	Address string `json:"address" validate:"required,min=3,max=30" db:"address"`
 	Region  string `json:"region" validate:"required,min=3,max=30" db:"region"`
-	Email   string `json:"email" validate:"required,min=6,max=50" db:"email"`
+	Email   string `json:"email" validate:"email" db:"email"`
 }
 
 type Customer struct {
@@ -61,7 +61,7 @@ type Customer struct {
 	Name    string    `json:"name" validate:"required,min=2,max=20" db:"name"`
 	Surname string    `json:"surname" validate:"required,min=2,max=20" db:"surname"`
 	Phone   string    `json:"phone" validate:"required,min=5,max=14" db:"phone"`
-	Email   string    `json:"email" validate:"required,min=6,max=50" db:"email"`
+	Email   string    `json:"email" validate:"email" db:"email"`
 }
 
 type Order struct {

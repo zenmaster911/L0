@@ -96,12 +96,12 @@ func TestHandler_CreateOrder(t *testing.T) {
 				Entry:       "WBIL",
 				Delivery: model.Delivery{
 					Name:    "test test",
-					Phone:   "",
+					Phone:   "+1111111111",
 					Zip:     "111111",
 					City:    "test",
 					Address: "test test test",
 					Region:  "test",
-					Email:   "test@tes.ru",
+					Email:   "testtes.ru",
 				},
 				Payment: model.Payment{
 					Transaction:  "b563feb7b2b84b6test",
@@ -142,7 +142,7 @@ func TestHandler_CreateOrder(t *testing.T) {
 			inputErr:             nil,
 			mockBehavior:         func(s *mocks.OrderMock, ca *cache_mocks.RedisCacheInterfaceMock, reply *model.Reply) {},
 			expectedStatusCode:   http.StatusBadRequest,
-			expectedResponseBody: `{"error":"Validation failed","fields":["Phone is required"]}`,
+			expectedResponseBody: `{"error":"Validation failed","fields":["Email is email"]}`,
 		},
 	}
 	for _, tt := range testTable {
