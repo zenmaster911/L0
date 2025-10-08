@@ -46,7 +46,9 @@ func main() {
 
 	srv := new(server.Server)
 
-	Cache.CacheLoad(ctx, cfg.Cache.CacheStartUpLimit)
+	if err := Cache.CacheLoad(ctx, cfg.Cache.CacheStartUpLimit); err != nil {
+		log.Printf("failed to load cache: %v", err)
+	}
 
 	sig := make(chan os.Signal, 1)
 	signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)

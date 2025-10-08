@@ -22,8 +22,10 @@ func sendValidationErrors(w http.ResponseWriter, err error) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusBadRequest)
-	json.NewEncoder(w).Encode((map[string]interface{}{
+	if err := json.NewEncoder(w).Encode((map[string]interface{}{
 		"error":  "Validation failed",
 		"fields": errors,
-	}))
+	})); err != nil {
+		http.Error(w, "error encoding response", http.StatusInternalServerError)
+	}
 }

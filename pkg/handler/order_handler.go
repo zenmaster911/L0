@@ -50,7 +50,9 @@ func (h *Handler) GetOrderByUid(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(&orderReply)
+	if err := json.NewEncoder(w).Encode(&orderReply); err != nil {
+		http.Error(w, "error encoding response", http.StatusInternalServerError)
+	}
 }
 
 func (h *Handler) CreateOrder(w http.ResponseWriter, r *http.Request) {
@@ -74,7 +76,9 @@ func (h *Handler) CreateOrder(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(map[string]interface{}{
+	if err := json.NewEncoder(w).Encode(map[string]interface{}{
 		"order_uid": uid,
-	})
+	}); err != nil {
+		http.Error(w, "error encoding response", http.StatusInternalServerError)
+	}
 }
